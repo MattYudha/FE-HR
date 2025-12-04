@@ -1,16 +1,11 @@
 'use client';
 
-import { useEffect, useState } from 'react';
 import { Bell, User } from 'lucide-react';
-import { getUserData, type User as UserType } from '@/lib/auth';
+import useAuthStore from '@/src/stores/authStore';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 
 export function Topbar() {
-  const [user, setUser] = useState<UserType | null>(null);
-
-  useEffect(() => {
-    setUser(getUserData());
-  }, []);
+  const user = useAuthStore((state) => state.user);
 
   const getInitials = (name: string) => {
     return name

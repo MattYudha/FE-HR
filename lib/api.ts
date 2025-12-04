@@ -1,9 +1,10 @@
 import axios, { AxiosError } from 'axios';
-
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+import useAuthStore from '@/src/stores/authStore';
+import { showGlobalLoading, hideGlobalLoading } from '@/components/shared/GlobalLoadingOverlay';
 
 export const apiClient = axios.create({
-  baseURL: API_BASE_URL,
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
+  withCredentials: false,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -11,28 +12,28 @@ export const apiClient = axios.create({
 
 apiClient.interceptors.request.use(
   (config) => {
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem('auth_token');
-      if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
-      }
+    showGlobalLoading(); // Show loading indicator
+    const token = useAuthStore.getState().token;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
+    hideGlobalLoading(); // Hide loading indicator on request error
     return Promise.reject(error);
   }
 );
 
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    hideGlobalLoading(); // Hide loading indicator on success
+    return response;
+  },
   (error: AxiosError) => {
+    hideGlobalLoading(); // Hide loading indicator on response error
     if (error.response?.status === 401) {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem('auth_token');
-        localStorage.removeItem('user_data');
-        window.location.href = '/login';
-      }
+      useAuthStore.getState().logout();
     }
     return Promise.reject(error);
   }
