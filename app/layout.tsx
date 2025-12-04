@@ -6,16 +6,20 @@ import { Toaster } from '@/components/ui/toaster';
 import { Providers } from '@/components/shared/Providers';
 import { Loader } from '@/components/shared/Loader';
 
-const GlobalLoadingOverlay = dynamic(() => import('@/components/shared/GlobalLoadingOverlay'), {
-  ssr: false,
-  loading: () => <Loader />,
-});
+const GlobalLoadingOverlay = dynamic(
+  () => import('@/components/shared/GlobalLoadingOverlay'),
+  {
+    ssr: false,
+    loading: () => <Loader />,
+  },
+);
 
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'HR System - Employee Management',
-  description: 'Complete HR management system for employees, payroll, KPI, and more',
+  description:
+    'Complete HR management system for employees, payroll, KPI, and more',
 };
 
 export default function RootLayout({
@@ -29,8 +33,10 @@ export default function RootLayout({
         <Providers>
           {children}
           <Toaster />
+          {/* PERBAIKAN: Pindahkan GlobalLoadingOverlay ke SINI (di dalam Providers) */}
+          <GlobalLoadingOverlay />
         </Providers>
-        <GlobalLoadingOverlay />
+        {/* SEBELUMNYA DI SINI (SALAH) */}
       </body>
     </html>
   );

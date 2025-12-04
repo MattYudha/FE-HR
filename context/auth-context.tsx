@@ -10,7 +10,7 @@ import React, {
 import Cookies from 'js-cookie';
 import { useRouter } from 'next/navigation';
 import api from '@/lib/api';
-import { User } from '@/src/types'; // Sesuaikan path ini dengan struktur project kamu
+import { User } from '@/src/types';
 
 interface AuthContextType {
   user: User | null;
@@ -29,7 +29,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const router = useRouter();
 
-  // LOGOUT dipisah sebagai function declaration (aman dipanggil dari mana saja di bawah)
   function logout() {
     Cookies.remove('token');
     setToken(null);
@@ -45,9 +44,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
       const data = response.data.data;
 
+      // PERBAIKAN: Normalisasi role. Jika role adalah object, ambil properti 'name'-nya.
+      // Backend mengirim object { id, name, createdAt... }, kita hanya butuh string 'name'.
+      const roleName =
+        typeof data.role === 'object' && data.role !== null
+          ? data.role.name
+          : data.role;
+
       setUser({
         ...data,
-        // pastikan null → undefined supaya aman dipakai di AvatarImage (string | undefined)
+        role: roleName, // Simpan sebagai string agar sesuai interface User dan aman dirender
         profilePictureUrl: data.profilePictureUrl ?? undefined,
       });
     } catch (error) {
@@ -79,12 +85,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       Cookies.set('token', newToken, { expires: 7 });
       setToken(newToken);
 
+      // PERBAIKAN: Normalisasi role juga saat login awal
+      const roleName =
+        typeof userData.role === 'object' && userData.role !== null
+          ? userData.role.name
+          : userData.role;
+
       setUser({
         ...userData,
+        role: roleName,
         profilePictureUrl: userData.profilePictureUrl ?? undefined,
       });
 
-      api.defaults.headers.common['Authorization'] = `Bearer newToken`;
+      api.defaults.headers.common['Authorization'] = `Bearer ${newToken}`; // Perbaikan syntax template literal yang hilang di kode sebelumnya
 
       router.push('/dashboard');
     } catch (error) {

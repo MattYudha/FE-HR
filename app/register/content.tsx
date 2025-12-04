@@ -1,4 +1,3 @@
-// app/register/content.tsx
 'use client';
 
 import { useState } from 'react';
@@ -7,8 +6,14 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useToast } from '@/hooks/use-toast';
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from '@/components/ui/card';
+import { useToast } from '@/components/ui/use-toast'; // Pastikan path import ini benar sesuai struktur project Anda
 import apiClient from '@/lib/api';
 import { Loader2, Lock, Mail, User as UserIcon } from 'lucide-react';
 
@@ -35,11 +40,13 @@ export default function RegisterPageContent() {
     setIsLoading(true);
 
     try {
-      await apiClient.post('/api/auth/register', {
+      // PERBAIKAN: Menggunakan '/auth/register' saja (tanpa /api di depan)
+      // karena apiClient baseURL sudah mengarah ke .../api
+      await apiClient.post('/auth/register', {
         fullName: name,
         email,
         password,
-        roleId: 'b87af129-6933-447a-8c9c-925118cdf4a1', // USER
+        roleId: 'b87af129-6933-447a-8c9c-925118cdf4a1', // Pastikan ID Role ini valid di database Anda
       });
 
       toast({
@@ -49,7 +56,6 @@ export default function RegisterPageContent() {
 
       router.push('/login');
     } catch (error: any) {
-      // Aman sedikit: handle error generic juga
       const message =
         error?.response?.data?.message ||
         error?.message ||

@@ -1,16 +1,24 @@
 import { useQuery } from '@tanstack/react-query';
 import api from '@/lib/api';
 
+// PERBAIKAN: Update interface sesuai response backend
 interface DashboardSummary {
   totalEmployees: number;
-  totalPayroll: number;
-  averageKpi: number;
-  attendanceToday: number;
+  payrollPaid: number;
+  payrollPending: number;
+  approvalPending: number;
+  attendanceToday: {
+    // UBAH INI
+    present: number;
+    total: number;
+  };
+  kpiAverageScore: number;
 }
 
 interface PayrollTrendData {
-  period: string;
-  totalPayroll: number;
+  month: string;
+  countPaid: number;
+  totalPaid: number;
 }
 
 export const useDashboardSummary = () => {
@@ -18,7 +26,7 @@ export const useDashboardSummary = () => {
     queryKey: ['dashboardSummary'],
     queryFn: async () => {
       const { data } = await api.get('/dashboard/summary');
-      return data.data; // Adjust based on actual API response structure
+      return data.data;
     },
   });
 };
@@ -28,7 +36,7 @@ export const usePayrollTrend = () => {
     queryKey: ['payrollTrend'],
     queryFn: async () => {
       const { data } = await api.get('/dashboard/payroll-trend');
-      return data.data; // Adjust based on actual API response structure
+      return data.data;
     },
   });
 };

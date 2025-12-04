@@ -1,21 +1,26 @@
+'use client';
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import api from '@/lib/api';
 
+// =======================
+// Interfaces dasar
+// =======================
+
+// Sesuaikan dengan response API kamu.
+// Minimal isi field yang memang dipakai di UI (PayrollTable, PayrollForm, dll).
 export interface Payroll {
   id: string;
   employeeId: string;
+  employeeName: string;
   period: string;
   baseSalary: number;
   allowances: number;
   deductions: number;
   netSalary: number;
   status: 'PENDING' | 'PAID';
-  createdAt: string;
-  updatedAt: string;
-  employee?: { // Assuming employee details might be nested
-    fullName: string;
-    position: string;
-  };
+  // tambahkan field lain kalau ada
+  [key: string]: any;
 }
 
 export interface CreatePayrollData {
@@ -24,97 +29,138 @@ export interface CreatePayrollData {
   baseSalary: number;
   allowances: number;
   deductions: number;
+  // field lain yang dibutuhkan endpoint create payroll
+  [key: string]: any;
 }
 
-export interface BulkGeneratePayrollData {
+// =======================
+// Recap interfaces
+// =======================
+
+export interface DepartmentalRecap {
+  department: string;
+  totalSalary: number;
+  totalPph21: number;
+  totalTakeHomePay: number;
+  employeeCount: number;
+}
+
+export interface PayrollRecap {
   period: string;
+  totalPayroll: number;
+  totalTax: number;
+  totalNet: number;
+  totalEmployeesPaid: number;
+  departmentalRecap: DepartmentalRecap[];
 }
 
-// Fetch all payrolls with optional filters
-export const usePayrolls = (filters?: { status?: string; period?: string; search?: string; employeeId?: string }) => {
+// =======================
+// LIST & DETAIL PAYROLL
+// =======================
+
+// List payrolls (table utama)
+export const usePayrolls = (params?: Record<string, any>) => {
   return useQuery<Payroll[], Error>({
-    queryKey: ['payrolls', filters],
+    queryKey: ['payrolls', params],
     queryFn: async () => {
-      const { data } = await api.get('/payroll', { params: filters });
-      return data.data; // Adjust based on actual API response structure
+      const { data } = await api.get('/payroll', { params });
+      // asumsi backend balikin { data: { data: Payroll[] } } → sesuaikan kalau beda
+      return data.data as Payroll[];
     },
   });
 };
 
-// Fetch a single payroll by ID
-export const usePayroll = (id: string) => {
+// Detail payroll (by id)
+export const usePayroll = (id?: string) => {
   return useQuery<Payroll, Error>({
     queryKey: ['payroll', id],
     queryFn: async () => {
       const { data } = await api.get(`/payroll/${id}`);
-      return data.data; // Adjust based on actual API response structure
+      return data.data as Payroll;
     },
     enabled: !!id,
   });
 };
 
-// Create a new payroll (manual)
+// Create payroll
 export const useCreatePayroll = () => {
   const queryClient = useQueryClient();
-  return useMutation<Payroll, Error, CreatePayrollData>({
-    mutationFn: async (newPayroll) => {
-      const { data } = await api.post('/payroll', newPayroll);
-      return data.data; // Adjust based on actual API response structure
+
+  return useMutation({
+    mutationFn: async (payload: CreatePayrollData) => {
+      const { data } = await api.post('/payroll', payload);
+      return data;
     },
     onSuccess: () => {
+      // refresh list setelah create
       queryClient.invalidateQueries({ queryKey: ['payrolls'] });
     },
   });
 };
 
-// Bulk generate payrolls
-export const useBulkGeneratePayroll = () => {
-  const queryClient = useQueryClient();
-  return useMutation<void, Error, BulkGeneratePayrollData>({
-    mutationFn: async (periodData) => {
-      await api.post('/payroll/bulk-generate', periodData);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payrolls'] });
-    },
-  });
-};
+// =======================
+// UPDATE STATUS (PAID / PENDING)
+// =======================
 
-// Mark payroll as paid
+// Tandai payroll sebagai PAID
 export const useMarkPayrollAsPaid = () => {
   const queryClient = useQueryClient();
-  return useMutation<void, Error, string>({
-    mutationFn: async (id) => {
-      await api.put(`/payroll/${id}/pay`);
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/payroll/${id}/mark-paid`);
+      return data;
     },
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payrolls'] });
-      queryClient.invalidateQueries({ queryKey: ['payroll', id] });
     },
   });
 };
 
-// Revert payroll to pending (unpay)
+// Kembalikan payroll ke PENDING
 export const useRevertPayrollToPending = () => {
   const queryClient = useQueryClient();
-  return useMutation<void, Error, string>({
-    mutationFn: async (id) => {
-      await api.put(`/payroll/${id}/unpay`);
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data } = await api.post(`/payroll/${id}/revert-pending`);
+      return data;
     },
-    onSuccess: (_, id) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payrolls'] });
-      queryClient.invalidateQueries({ queryKey: ['payroll', id] });
     },
   });
 };
 
-// Export payroll report (CSV/XLSX) - this will trigger a file download
-export const exportPayrollReport = async (period: string, format: 'csv' | 'xlsx') => {
+// =======================
+// RECAP & REPORT
+// =======================
+
+// 1. Fetch Payroll Recap
+export const usePayrollRecap = (period: string) => {
+  return useQuery<PayrollRecap, Error>({
+    queryKey: ['payrollRecap', period],
+    queryFn: async () => {
+      const { data } = await api.get(`/payroll/recap`, {
+        params: { period },
+      });
+      return data.data as PayrollRecap;
+    },
+    enabled: !!period,
+  });
+};
+
+// 2. Export Report (Excel/CSV)
+export const exportPayrollReport = async (
+  period: string,
+  format: 'csv' | 'xlsx',
+) => {
   try {
     const response = await api.get(`/payroll/export`, {
       params: { period, format },
-      responseType: 'blob', // Important for file downloads
+      responseType: 'blob', // Penting untuk file download
     });
+
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
@@ -129,16 +175,16 @@ export const exportPayrollReport = async (period: string, format: 'csv' | 'xlsx'
   }
 };
 
-// Download PDF payroll slip - this will trigger a file download
-export const downloadPayrollSlip = async (id: string) => {
+// 3. Download Slip Gaji PDF
+export const downloadPayrollSlip = async (id: string, employeeName: string) => {
   try {
     const response = await api.get(`/payroll/${id}/pdf`, {
-      responseType: 'blob', // Important for file downloads
+      responseType: 'blob',
     });
     const url = window.URL.createObjectURL(new Blob([response.data]));
     const link = document.createElement('a');
     link.href = url;
-    link.setAttribute('download', `payroll-slip-${id}.pdf`);
+    link.setAttribute('download', `slip-gaji-${employeeName}.pdf`);
     document.body.appendChild(link);
     link.click();
     link.remove();
