@@ -1,42 +1,26 @@
-import axios, { AxiosError } from 'axios';
-import useAuthStore from '@/src/stores/authStore';
-import { showGlobalLoading, hideGlobalLoading } from '@/components/shared/GlobalLoadingOverlay';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
-export const apiClient = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL,
-  withCredentials: false,
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:3000/api';
+
+const api = axios.create({
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
 });
 
-apiClient.interceptors.request.use(
+api.interceptors.request.use(
   (config) => {
-    showGlobalLoading(); // Show loading indicator
-    const token = useAuthStore.getState().token;
+    const token = Cookies.get('token');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
   (error) => {
-    hideGlobalLoading(); // Hide loading indicator on request error
     return Promise.reject(error);
   }
 );
 
-apiClient.interceptors.response.use(
-  (response) => {
-    hideGlobalLoading(); // Hide loading indicator on success
-    return response;
-  },
-  (error: AxiosError) => {
-    hideGlobalLoading(); // Hide loading indicator on response error
-    if (error.response?.status === 401) {
-      useAuthStore.getState().logout();
-    }
-    return Promise.reject(error);
-  }
-);
-
-export default apiClient;
+export default api;

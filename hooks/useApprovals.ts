@@ -19,7 +19,7 @@ interface UpdateApprovalStatusVars {
 }
 
 const updateApprovalStatus = async ({ id, status, reviewerNotes }: UpdateApprovalStatusVars): Promise<Approval> => {
-  const response = await apiClient.put(`/approval/${id}`, { status, reviewerNotes });
+  const response = await apiClient.post(`/api/approval/approve`, { id, status, reviewerNotes });
   return response.data;
 };
 

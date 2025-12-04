@@ -1,16 +1,30 @@
-import dynamic from 'next/dynamic';
-import { Loader } from '@/components/shared/Loader';
-import AuthGuard from '@/components/shared/AuthGuard'; // AuthGuard is now default export
+'use client';
 
-const CreatePayrollPageContent = dynamic(() => import('./content'), {
-  ssr: false,
-  loading: () => <Loader />,
-});
+import { useRouter } from 'next/navigation';
+import { PayrollForm } from '@/components/payroll/PayrollForm';
+import { useCreatePayroll } from '@/hooks/use-payroll';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function CreatePayrollPage() {
+  const router = useRouter();
+  const { mutateAsync: createPayroll, isPending: isLoading } = useCreatePayroll();
+
+  const handleSubmit = async (data: any) => {
+    await createPayroll(data);
+    router.push('/payroll');
+  };
+
   return (
-    <AuthGuard allowedRoles={['admin']}> {/* Assuming specific roles */}
-      <CreatePayrollPageContent />
-    </AuthGuard>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Create New Payroll</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Payroll Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PayrollForm onSubmit={handleSubmit} isLoading={isLoading} />
+        </CardContent>
+      </Card>
+    </div>
   );
 }

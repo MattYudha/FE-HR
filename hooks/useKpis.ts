@@ -3,23 +3,23 @@ import apiClient from '@/lib/api';
 import { KPI } from '@/src/types';
 
 const fetchKpis = async (): Promise<KPI[]> => {
-  const response = await apiClient.get('/kpi');
+  const response = await apiClient.get('/api/kpi');
   return response.data;
 };
 
 const fetchKpiById = async (id: string): Promise<KPI> => {
-  const response = await apiClient.get(`/kpi/${id}`);
+  const response = await apiClient.get(`/api/kpi/${id}`);
   return response.data;
 };
 
 const createKpi = async (newKpiData: Omit<KPI, 'id' | 'lastUpdated'>): Promise<KPI> => {
-  const response = await apiClient.post('/kpi', newKpiData);
+  const response = await apiClient.post('/api/kpi', newKpiData);
   return response.data;
 };
 
 const updateKpi = async (updatedKpiData: Partial<KPI> & { id: string }): Promise<KPI> => {
   const { id, ...data } = updatedKpiData;
-  const response = await apiClient.put(`/kpi/${id}`, data);
+  const response = await apiClient.put(`/api/kpi/${id}`, data);
   return response.data;
 };
 

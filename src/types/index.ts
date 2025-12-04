@@ -29,6 +29,7 @@ export interface User {
   email: string;
   name: string;
   role: string;
+  profilePictureUrl?: string;
 }
 
 export interface DepartmentalRecap {

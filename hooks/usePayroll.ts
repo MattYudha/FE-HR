@@ -44,7 +44,7 @@ export const useUpdatePayrollStatus = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (payrollId: string) => apiClient.put(`/payroll/${payrollId}`, { status: 'paid' }),
+    mutationFn: (payrollId: string) => apiClient.put(`/api/payroll/${payrollId}/pay`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['payrolls'] });
       // Also invalidate the specific payroll query if it's in the cache

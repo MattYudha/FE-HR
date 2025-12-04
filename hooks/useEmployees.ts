@@ -3,7 +3,7 @@ import apiClient from '@/lib/api';
 import { Employee } from '@/src/types';
 
 const fetchEmployees = async (): Promise<Employee[]> => {
-  const response = await apiClient.get('/employees');
+  const response = await apiClient.get('/api/employees');
   return response.data;
 };
 
@@ -18,7 +18,7 @@ export const useDeleteEmployee = () => {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (employeeId: string) => apiClient.delete(`/employees/${employeeId}`),
+    mutationFn: (employeeId: string) => apiClient.delete(`/api/employees/${employeeId}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['employees'] });
     },

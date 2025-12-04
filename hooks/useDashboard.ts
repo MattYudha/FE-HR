@@ -38,7 +38,7 @@ const fetchPayrollTrend = async (): Promise<PayrollTrendData[]> => {
 };
 
 const fetchAttendanceToday = async (): Promise<AttendanceTodayData> => {
-  const response = await apiClient.get('/dashboard/attendance-today');
+  const response = await apiClient.get('/api/dashboard/attendance-today');
   return response.data;
 };
 

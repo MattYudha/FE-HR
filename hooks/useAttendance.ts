@@ -9,8 +9,8 @@ interface AttendanceResponse {
 
 const fetchAttendancesAndSummary = async (date: string): Promise<AttendanceResponse> => {
   const [attendanceRes, summaryRes] = await Promise.all([
-    apiClient.get(`/attendance?date=${date}`),
-    apiClient.get(`/attendance/summary?date=${date}`),
+    apiClient.get(`/api/attendance?date=${date}`),
+    apiClient.get(`/api/attendance/summary?date=${date}`),
   ]);
   return {
     attendances: attendanceRes.data,

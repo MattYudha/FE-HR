@@ -35,7 +35,7 @@ export default function RegisterPageContent() {
     setIsLoading(true);
 
     try {
-      await apiClient.post('/register', {
+      await apiClient.post('/api/auth/register', {
         fullName: name,
         email,
         password,

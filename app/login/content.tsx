@@ -35,7 +35,7 @@ export default function LoginPageContent() {
     setIsLoading(true);
 
     try {
-      const response = await apiClient.post('/login', {
+      const response = await apiClient.post('/api/auth/login', {
         email,
         password,
       });
@@ -112,7 +112,7 @@ export default function LoginPageContent() {
             </Button>
           </form>
           <div className="mt-4 text-center text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/register" className="underline">
               Sign Up
             </Link>

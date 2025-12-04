@@ -1,25 +1,20 @@
-import { type Metadata } from 'next';
-import dynamic from 'next/dynamic';
-import { Loader } from '@/components/shared/Loader';
+'use client';
 
-const AuthGuard = dynamic(() => import('@/components/shared/AuthGuard'), {
-  ssr: false,
-  loading: () => <Loader />,
-});
+import { PayrollTable } from '@/components/payroll/PayrollTable';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
-const PayrollPageContent = dynamic(() => import('./content'), {
-  ssr: false,
-  loading: () => <Loader />,
-});
-
-export const metadata: Metadata = {
-  title: 'Payroll Management',
-};
-
-export default function PayrollPage() {
+export default function PayrollsPage() {
   return (
-    <AuthGuard allowedRoles={['admin']}>
-      <PayrollPageContent />
-    </AuthGuard>
+    <div className="space-y-6">
+      <h1 className="text-3xl font-bold">Payroll Management</h1>
+      <Card>
+        <CardHeader>
+          <CardTitle>Payroll List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <PayrollTable />
+        </CardContent>
+      </Card>
+    </div>
   );
 }
